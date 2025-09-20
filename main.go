@@ -95,5 +95,5 @@ func main() {
 
 	r, g, b := pixel.R, pixel.B, pixel.G
 
-	fmt.Printf("\n \x1b[48;2;%d;%d;%dm        \x1b[0m\n \x1b[48;2;%d;%d;%dm        \x1b[0m\t\tRGB: %d, %d, %d\n \x1b[48;2;%d;%d;%dm        \x1b[0m\n\n", r, g, b, r, g, b, r, g, b, r, g, b)
+	fmt.Printf("\n \x1b[48;2;%d;%d;%dm        \x1b[0m\t\tAverage color\n \x1b[48;2;%d;%d;%dm        \x1b[0m\t\tRGB: %d, %d, %d\n \x1b[48;2;%d;%d;%dm        \x1b[0m\t\tHEX: #%02x%02x%02x\n\n", r, g, b, r, g, b, r, g, b, r, g, b, r, g, b)
 }
