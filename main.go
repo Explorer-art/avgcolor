@@ -28,12 +28,7 @@ func getAverageColor(file io.Reader) (Pixel, error) {
 		return Pixel{}, err
 	}
 
-	var (
-		avg_r int
-		avg_g int
-		avg_b int
-		avg_a int
-	)
+	var avg_r, avg_g, avg_b, avg_a int
 
 	bounds := img.Bounds()
 	width, height := bounds.Max.X, bounds.Max.Y
@@ -54,29 +49,56 @@ func getAverageColor(file io.Reader) (Pixel, error) {
 	return Pixel{avg_r / (height * width), avg_g / (height * width), avg_b / (height * width), avg_a / (height * width)}, nil
 }
 
+func parseFlags() map[string]string {
+	flags := make(map[string]string, 2)
+	var mode string
+	
+	for i := 1; i < len(os.Args); i++ {
+		if mode == "" && (os.Args[i] == "-f" || os.Args[i] == "--format") {
+			mode = "-f"
+		} else if mode == "-f" {
+			flags["-f"] = os.Args[i]
+			mode = ""
+		}
+	}
+
+	return flags
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Printf("Usage: %s <image> [flags]\n", os.Args[0]);
 		os.Exit(0)
 	}
-	
+
 	path := os.Args[1]
-	ext := strings.ToLower(filepath.Ext(path))
 
-	if ext == "" {
-		fmt.Fprintln(os.Stderr, "error: unknown image format")
-		os.Exit(1)
-	}
+	flags := parseFlags()
 
-	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-		fmt.Fprintf(os.Stderr, "error: unknown %s format\n", ext[1:])
-		os.Exit(1)
-	}
-
-	if ext == ".png" {
-		image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
-	} else if ext == ".jpg" || ext == ".jpeg" {
-		image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
+	if _, ok := flags["-f"]; !ok {
+		ext := strings.ToLower(filepath.Ext(path))
+			
+		if ext == "" {
+			fmt.Fprintln(os.Stderr, "error: unknown image format")
+			os.Exit(1)
+		}
+		
+		if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+			fmt.Fprintf(os.Stderr, "error: unknown %s format\n", ext[1:])
+			os.Exit(1)
+		}
+		
+		if ext == ".png" {
+			image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
+		} else if ext == ".jpg" || ext == ".jpeg" {
+			image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
+		}
+	} else {
+		if strings.ToLower(flags["-f"]) == "png" {
+			image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
+		} else if strings.ToLower(flags["-f"]) == "jpg" || strings.ToLower(flags["-f"]) == "jpeg" {
+			image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
+		}
 	}
 
 	file, err := os.Open(path)
@@ -93,7 +115,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	r, g, b := pixel.R, pixel.B, pixel.G
+	r, g, b := pixel.R, pixel.G, pixel.B
 
 	fmt.Printf("\n \x1b[48;2;%d;%d;%dm        \x1b[0m\t\tAverage color\n \x1b[48;2;%d;%d;%dm        \x1b[0m\t\tRGB: %d, %d, %d\n \x1b[48;2;%d;%d;%dm        \x1b[0m\t\tHEX: #%02x%02x%02x\n\n", r, g, b, r, g, b, r, g, b, r, g, b, r, g, b)
 }
